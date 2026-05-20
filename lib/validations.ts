@@ -11,7 +11,7 @@ const optionalUrl = z.union([z.url(), z.literal('')]).optional()
 
 export const createInstanceSchema = z.object({
   name: z.string().regex(/^[a-z0-9-]+$/, 'Only lowercase letters, numbers, and hyphens'),
-  imageTag: z.string().default('1panel/openclaw:2026.5.7'),
+  imageTag: z.string().min(1).optional(),
   port: z.number().int().min(1024).max(65535),
   provider: z.string().min(1),
   model: z.string().min(1),
@@ -80,3 +80,15 @@ export const openclawConfigUpdateSchema = z.object({
 })
 
 export type OpenclawConfigUpdateInput = z.infer<typeof openclawConfigUpdateSchema>
+
+export const importImageSchema = z.object({
+  tag: z.string().min(1, 'Tag 不能为空').max(128),
+})
+
+export type ImportImageInput = z.infer<typeof importImageSchema>
+
+export const validateTagSchema = z.object({
+  tag: z.string().min(1, 'Tag 不能为空').max(128),
+})
+
+export type ValidateTagInput = z.infer<typeof validateTagSchema>
