@@ -1,0 +1,20 @@
+services:
+  openclaw-colony:
+    image: openclaw-colony:latest
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+    environment:
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_SECRET=${AUTH_SECRET:-${NEXTAUTH_SECRET}}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - DATABASE_URL=file:/app/data/colony.db
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DATA_ROOT=/app/data/instances
+      - HOST_DATA_ROOT=/home/ubuntu/workspace/openclaw_colony/openclaw-colony/data/instances
+      - HOST_IP=${HOST_IP:-127.0.0.1}
+      - AUTH_TRUST_HOST=${AUTH_TRUST_HOST:-true}
+    restart: unless-stopped

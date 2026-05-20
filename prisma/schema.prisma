@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  admin
+  operator
+}
+
+enum InstanceStatus {
+  creating
+  running
+  stopped
+  unhealthy
+  error
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(operator)
+  createdAt    DateTime   @default(now())
+  instances    Instance[]
+}
+
+model Instance {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  containerId   String?
+  imageTag      String         @default("1panel/openclaw:2026.5.7")
+  port          Int            @unique
+  provider      String
+  model         String
+  apiKey        String         // Encrypted with AES-256-GCM before storage (see lib/crypto.ts)
+  baseUrl       String?
+  bindAddress   String         @default("127.0.0.1")
+  allowedOrigin String?
+  cpuLimit      Float          @default(2.0)
+  memoryLimit   String         @default("2G")
+  dataDir       String?
+  status        InstanceStatus @default(creating)
+  createdAt     DateTime       @default(now())
+  createdBy     String
+  creator       User           @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy])
+  @@index([status])
+}
