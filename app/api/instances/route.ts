@@ -47,6 +47,16 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
   const data = parsed.data
+
+  // Check if imageTag is provided or use active image
+  if (!data.imageTag) {
+    const activeImage = await prisma.image.findFirst({ where: { isActive: true } })
+    if (!activeImage) {
+      return NextResponse.json({ error: '请先在镜像管理中设置生效镜像' }, { status: 400 })
+    }
+    data.imageTag = `${activeImage.repository}:${activeImage.tag}`
+  }
+
   const dataRoot = process.env.DATA_ROOT ?? './data/instances'
   const hostDataRoot = process.env.HOST_DATA_ROOT ?? dataRoot
   const dataDir = data.dataDir ?? path.join(dataRoot, data.name)

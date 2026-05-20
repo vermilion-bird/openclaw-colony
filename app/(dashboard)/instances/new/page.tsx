@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,23 +7,49 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PROVIDERS } from '@/lib/validations'
+import { AlertTriangle } from 'lucide-react'
 
-const DEFAULT_IMAGE = '1panel/openclaw:2026.5.7'
+interface ActiveImage {
+  repository: string
+  tag: string
+}
 
 export default function NewInstancePage() {
   const router = useRouter()
+  const [activeImage, setActiveImage] = useState<ActiveImage | null>(null)
+  const [noActiveImage, setNoActiveImage] = useState(false)
   const [form, setForm] = useState({
-    name: '', imageTag: DEFAULT_IMAGE, port: '18789',
+    name: '', imageTag: '', port: '18789',
     provider: 'deepseek', model: '', apiKey: '', baseUrl: '',
     bindAddress: '127.0.0.1', allowedOrigin: '', cpuLimit: '2', memoryLimit: '2G',
   })
   const [error, setError] = useState('')
   const [creating, setCreating] = useState(false)
 
+  useEffect(() => {
+    // Fetch active image on mount
+    fetch('/api/images?limit=1')
+      .then(res => res.json())
+      .then(data => {
+        const active = data.images?.find((img: any) => img.isActive)
+        if (active) {
+          setActiveImage({ repository: active.repository, tag: active.tag })
+          setForm(f => ({ ...f, imageTag: `${active.repository}:${active.tag}` }))
+        } else {
+          setNoActiveImage(true)
+        }
+      })
+      .catch(() => setNoActiveImage(true))
+  }, [])
+
   function set(key: string, val: string) { setForm(f => ({ ...f, [key]: val })) }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (noActiveImage && !form.imageTag) {
+      setError('请先在镜像管理中设置生效镜像')
+      return
+    }
     setCreating(true)
     setError('')
     const payload = {
@@ -49,6 +75,15 @@ export default function NewInstancePage() {
 
   return (
     <div className="max-w-xl mx-auto">
+      {noActiveImage && (
+        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
+          <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-yellow-700">无生效镜像</p>
+            <p className="text-yellow-600">请先在镜像管理中设置生效镜像，或手动填写镜像 Tag</p>
+          </div>
+        </div>
+      )}
       <Card>
         <CardHeader><CardTitle>新建 OpenClaw 实例</CardTitle></CardHeader>
         <CardContent>
@@ -123,7 +158,15 @@ export default function NewInstancePage() {
               <div className="mt-3 space-y-4 pl-2 border-l-2 border-gray-100">
                 <div className="space-y-1">
                   <Label htmlFor="imageTag">镜像 Tag</Label>
-                  <Input id="imageTag" value={form.imageTag} onChange={e => set('imageTag', e.target.value)} />
+                  <Input
+                    id="imageTag"
+                    value={form.imageTag}
+                    onChange={e => set('imageTag', e.target.value)}
+                    placeholder={activeImage ? `${activeImage.repository}:${activeImage.tag}` : 'openclaw/openclaw:latest'}
+                  />
+                  {activeImage && (
+                    <p className="text-xs text-gray-400">当前生效镜像: {activeImage.repository}:{activeImage.tag}</p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
