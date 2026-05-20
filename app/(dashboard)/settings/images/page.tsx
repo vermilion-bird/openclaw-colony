@@ -91,7 +91,7 @@ export default function ImagesPage() {
       />
 
       <DeleteImageDialog
-        imageId={deleteTarget?.id}
+        imageId={deleteTarget?.id ?? null}
         isActive={deleteTarget?.isActive ?? false}
         onClose={() => setDeleteTarget(null)}
         onDeleted={() => {

@@ -91,7 +91,13 @@ export async function POST(req: NextRequest) {
   })
 
   try {
-    const container = await createOpenClawContainer({ ...data, apiKey: data.apiKey, dataDir, hostDataDir })
+    const container = await createOpenClawContainer({
+      ...data,
+      imageTag: data.imageTag!,
+      apiKey: data.apiKey,
+      dataDir,
+      hostDataDir,
+    })
     await startContainer(container.id)
     await prisma.instance.update({
       where: { id: instance.id },
