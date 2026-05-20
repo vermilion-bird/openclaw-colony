@@ -18,6 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <>
                 <Link href="/settings/images" className="text-gray-600 hover:text-gray-900">镜像</Link>
                 <Link href="/settings/users" className="text-gray-600 hover:text-gray-900">用户</Link>
+                <Link href="/activity-logs" className="text-gray-600 hover:text-gray-900">操作记录</Link>
               </>
             )}
           </nav>

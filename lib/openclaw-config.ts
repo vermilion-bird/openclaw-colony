@@ -88,6 +88,15 @@ export function writeOpenClawConfig(
     fs.mkdirSync(confDir, { recursive: true })
   }
 
+  // Try to fix permissions if file exists but is not writable
+  if (fs.existsSync(configPath)) {
+    try {
+      fs.chmodSync(configPath, 0o666)
+    } catch {
+      // Ignore chmod errors, try to write anyway
+    }
+  }
+
   fs.writeFileSync(configPath, JSON.stringify(merged, null, 2))
 }
 

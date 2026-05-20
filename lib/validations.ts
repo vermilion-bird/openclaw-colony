@@ -54,7 +54,7 @@ export const feishuConfigSchema = z.object({
   encryptKey: z.string().optional(),
   dmPolicy: z.enum(['pairing', 'open', 'disabled']).optional(),
   allowFrom: z.array(z.string()).optional(),
-  groups: z.record(z.object({
+  groups: z.record(z.string(), z.object({
     requireMention: z.boolean().optional(),
   })).optional(),
 })
@@ -92,3 +92,16 @@ export const validateTagSchema = z.object({
 })
 
 export type ValidateTagInput = z.infer<typeof validateTagSchema>
+
+export const activityLogQuerySchema = z.object({
+  userKeyword: z.string().nullable().optional().transform(v => v ?? undefined),
+  eventCategory: z.enum(['AUTH', 'OPENCLAW', 'IMAGE', 'USER', 'CONFIG', 'DATA']).nullable().optional().transform(v => v ?? undefined),
+  eventType: z.string().nullable().optional().transform(v => v ?? undefined),
+  result: z.enum(['success', 'failure']).nullable().optional().transform(v => v ?? undefined),
+  startDate: z.string().nullable().optional().transform(v => v ?? undefined),
+  endDate: z.string().nullable().optional().transform(v => v ?? undefined),
+  page: z.string().nullable().optional().transform(v => v ? parseInt(v, 10) : 1).pipe(z.number().int().min(1)),
+  pageSize: z.string().nullable().optional().transform(v => v ? parseInt(v, 10) : 20).pipe(z.number().int().min(1).max(100)),
+})
+
+export type ActivityLogQueryInput = z.infer<typeof activityLogQuerySchema>
