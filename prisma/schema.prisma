@@ -51,3 +51,29 @@ model Instance {
   @@index([createdBy])
   @@index([status])
 }
+
+model ActivityLog {
+  id            BigInt    @id @default(autoincrement())
+  userId        String?
+  userName      String
+  userEmail     String
+  eventCategory String
+  eventType     String
+  eventDesc     String
+  targetType    String?
+  targetId      String?
+  targetName    String?
+  result        String
+  failReason    String?
+  ipAddress     String?
+  userAgent     String?
+  extra         String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([result])
+  @@index([ipAddress])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId, eventCategory, createdAt(sort: Desc)])
+}

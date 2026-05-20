@@ -15,7 +15,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <nav className="flex gap-4 text-sm">
             <Link href="/instances" className="text-gray-600 hover:text-gray-900">实例</Link>
             {(session.user as any).role === 'admin' && (
-              <Link href="/settings/users" className="text-gray-600 hover:text-gray-900">用户</Link>
+              <>
+                <Link href="/settings/users" className="text-gray-600 hover:text-gray-900">用户</Link>
+                <Link href="/activity-logs" className="text-gray-600 hover:text-gray-900">操作记录</Link>
+              </>
             )}
           </nav>
         </div>

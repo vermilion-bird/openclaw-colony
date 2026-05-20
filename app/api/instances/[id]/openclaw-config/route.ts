@@ -7,6 +7,7 @@ import {
   mergeChannelConfig,
   mergeModelConfig,
   type OpenClawConfig,
+  type FeishuConfig,
 } from '@/lib/openclaw-config'
 import { openclawConfigUpdateSchema } from '@/lib/validations'
 
@@ -47,7 +48,11 @@ export async function PUT(req: NextRequest, { params }: Params) {
   let merged: OpenClawConfig = existing
 
   if (parsed.data.channels?.feishu) {
-    merged = mergeChannelConfig(merged, parsed.data.channels.feishu)
+    const feishuConfig: FeishuConfig = {
+      ...parsed.data.channels.feishu,
+      groups: parsed.data.channels.feishu.groups as { [key: string]: { requireMention?: boolean } } | undefined,
+    }
+    merged = mergeChannelConfig(merged, feishuConfig)
   }
 
   if (parsed.data.agents?.defaults?.model) {
