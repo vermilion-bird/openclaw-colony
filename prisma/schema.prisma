@@ -26,6 +26,8 @@ model User {
   role         Role       @default(operator)
   createdAt    DateTime   @default(now())
   instances    Instance[]
+  importedImages Image[]
+  auditLogs      AuditLog[]
 }
 
 model Instance {
@@ -50,4 +52,36 @@ model Instance {
 
   @@index([createdBy])
   @@index([status])
+}
+
+model Image {
+  id             String   @id @default(cuid())
+  repository     String   @default("openclaw/openclaw")
+  tag            String
+  digest         String   @unique
+  os             String   @default("linux")
+  architecture   String   // amd64 or arm64
+  compressedSize Int      // bytes
+  isActive       Boolean  @default(false)
+  pushedAt       DateTime
+  importedAt     DateTime @default(now())
+  importedBy     String
+  importer       User     @relation(fields: [importedBy], references: [id])
+
+  @@index([isActive])
+  @@index([pushedAt])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String   // import, activate, delete
+  resource    String   // "image"
+  resourceId  String?  // image id
+  metadata    String?  // JSON: { tag, digest }
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
