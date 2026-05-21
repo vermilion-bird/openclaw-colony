@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import { encrypt } from '@/lib/crypto'
 import { createOpenClawContainer, startContainer, getContainerStatus } from '@/lib/docker'
 import { createInstanceSchema } from '@/lib/validations'
+import { generateRandomToken } from '@/lib/utils'
 import path from 'path'
 import fs from 'fs'
 
@@ -48,6 +49,9 @@ export async function POST(req: NextRequest) {
 
   const data = parsed.data
 
+  // Generate gatewayToken if not provided
+  const gatewayToken = data.gatewayToken || generateRandomToken(32)
+
   // Check if imageTag is provided or use active image
   if (!data.imageTag) {
     const activeImage = await prisma.image.findFirst({ where: { isActive: true } })
@@ -85,6 +89,7 @@ export async function POST(req: NextRequest) {
       cpuLimit: data.cpuLimit,
       memoryLimit: data.memoryLimit,
       dataDir,
+      gatewayToken,
       status: 'creating' as const,
       createdBy: session!.user!.id!,
     },
@@ -95,6 +100,7 @@ export async function POST(req: NextRequest) {
       ...data,
       imageTag: data.imageTag!,
       apiKey: data.apiKey,
+      gatewayToken,
       dataDir,
       hostDataDir,
     })
