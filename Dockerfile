@@ -1,14 +1,14 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-# Install native build dependencies for better-sqlite3
+# Install native build dependencies
 RUN apk add --no-cache python3 make g++
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 
 FROM node:20-alpine AS builder
 WORKDIR /app
-# Set DATABASE_URL for Prisma during build
-ENV DATABASE_URL=file:/app/data/colony.db
+# Set DATABASE_URL for Prisma during build (placeholder URL for schema validation)
+ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db?connect_timeout=1"
 RUN apk add --no-cache python3 make g++
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -21,8 +21,8 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Install runtime deps for better-sqlite3 native bindings
-RUN apk add --no-cache libc6-compat python3 make g++
+# Runtime dependencies
+RUN apk add --no-cache libc6-compat
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
