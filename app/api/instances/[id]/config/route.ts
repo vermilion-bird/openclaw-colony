@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import { encrypt, decrypt } from '@/lib/crypto'
 import { stopContainer, removeContainer, createOpenClawContainer, startContainer } from '@/lib/docker'
 import { updateConfigSchema } from '@/lib/validations'
+import { generateRandomToken } from '@/lib/utils'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -32,6 +33,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     cpuLimit: patch.cpuLimit ?? instance.cpuLimit,
     memoryLimit: patch.memoryLimit ?? instance.memoryLimit,
     dataDir: instance.dataDir ?? '',
+    gatewayToken: patch.gatewayToken || instance.gatewayToken || generateRandomToken(32),
   }
 
   if (instance.containerId) {
@@ -54,6 +56,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       cpuLimit: merged.cpuLimit,
       memoryLimit: merged.memoryLimit,
       status: 'running' as const,
+      gatewayToken: merged.gatewayToken,
     },
   })
   return NextResponse.json({ ...updated, apiKey: undefined })
