@@ -21,6 +21,7 @@ export interface CreateContainerOptions {
   memoryLimit: string
   dataDir: string
   hostDataDir?: string  // Host machine path for bind mounts
+  gatewayToken: string  // Required token for OpenClaw auth
 }
 
 function parseMemoryBytes(mem: string): number {
@@ -40,6 +41,7 @@ export async function createOpenClawContainer(opts: CreateContainerOptions) {
     `PROVIDER=${opts.provider}`,
     `MODEL=${opts.model}`,
     `API_KEY=${opts.apiKey}`,
+    `OPENCLAW_GATEWAY_TOKEN=${opts.gatewayToken}`,
   ]
   if (opts.baseUrl) env.push(`BASE_URL=${opts.baseUrl}`)
   if (opts.allowedOrigin) env.push(`ALLOWED_ORIGIN=${opts.allowedOrigin}`)
