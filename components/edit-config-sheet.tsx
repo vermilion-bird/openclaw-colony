@@ -133,7 +133,7 @@ export function EditConfigSheet({ instanceId, onClose, onSaved }: Props) {
               { key: 'model', label: '模型名', type: 'text' },
               { key: 'apiKey', label: 'API Key（留空保持不变）', type: 'password' },
               { key: 'baseUrl', label: 'Base URL（可选）', type: 'text' },
-              { key: 'gatewayToken', label: 'Gateway Token', type: 'text' },
+              { key: 'gatewayToken', label: 'Gateway Token（留空保持不变）', type: 'text' },
               { key: 'cpuLimit', label: 'CPU 上限', type: 'number' },
               { key: 'memoryLimit', label: '内存上限（如 2G）', type: 'text' },
             ].map(({ key, label, type }) => (
