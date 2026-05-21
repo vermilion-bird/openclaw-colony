@@ -22,6 +22,7 @@ export default function NewInstancePage() {
     name: '', imageTag: '', port: '18789',
     provider: 'deepseek', model: '', apiKey: '', baseUrl: '',
     bindAddress: '127.0.0.1', allowedOrigin: '', cpuLimit: '2', memoryLimit: '2G',
+    gatewayToken: '',
   })
   const [error, setError] = useState('')
   const [creating, setCreating] = useState(false)
@@ -58,6 +59,7 @@ export default function NewInstancePage() {
       cpuLimit: parseFloat(form.cpuLimit),
       baseUrl: form.baseUrl || undefined,
       allowedOrigin: form.allowedOrigin || undefined,
+      gatewayToken: form.gatewayToken || undefined,
     }
     const res = await fetch('/api/instances', {
       method: 'POST',
@@ -206,6 +208,15 @@ export default function NewInstancePage() {
                     value={form.allowedOrigin}
                     onChange={e => set('allowedOrigin', e.target.value)}
                     placeholder="https://my-domain.com"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="gatewayToken">Gateway Token</Label>
+                  <Input
+                    id="gatewayToken"
+                    value={form.gatewayToken}
+                    onChange={e => set('gatewayToken', e.target.value)}
+                    placeholder="留空自动生成 32 位随机 token"
                   />
                 </div>
               </div>
