@@ -45,6 +45,7 @@ model Instance {
   cpuLimit      Float          @default(2.0)
   memoryLimit   String         @default("2G")
   dataDir       String?
+  gatewayToken  String       @default("")
   status        InstanceStatus @default(creating)
   createdAt     DateTime       @default(now())
   createdBy     String
