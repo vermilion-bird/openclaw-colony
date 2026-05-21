@@ -11,7 +11,7 @@ services:
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - AUTH_SECRET=${AUTH_SECRET:-${NEXTAUTH_SECRET}}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - DATABASE_URL=${DATABASE_URL:-postgresql://new_api:UEzRhnvd3Cevu3se@postgres:5432/openclaw_colony}
+      - DATABASE_URL=${DATABASE_URL}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DATA_ROOT=/app/data/instances
       - HOST_DATA_ROOT=/home/ubuntu/workspace/openclaw_colony/openclaw-colony/data/instances
