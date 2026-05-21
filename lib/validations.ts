@@ -22,6 +22,7 @@ export const createInstanceSchema = z.object({
   cpuLimit: z.number().positive().default(2),
   memoryLimit: z.string().regex(/^\d+[GgMmKk]?$/).default('2G'),
   dataDir: z.string().optional(),
+  gatewayToken: z.string().min(8).max(64).optional(),
 })
 
 export type CreateInstanceInput = z.infer<typeof createInstanceSchema>
@@ -35,6 +36,7 @@ export const updateConfigSchema = z.object({
   cpuLimit: z.number().positive().optional(),
   memoryLimit: z.string().regex(/^\d+[GgMmKk]?$/).optional(),
   imageTag: z.string().optional(),
+  gatewayToken: z.string().min(8).max(64).optional(),
 })
 
 export type UpdateConfigInput = z.infer<typeof updateConfigSchema>
