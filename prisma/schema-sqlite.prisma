@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  admin
+  operator
+}
+
+enum InstanceStatus {
+  creating
+  running
+  stopped
+  unhealthy
+  error
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(operator)
+  createdAt    DateTime   @default(now())
+  instances    Instance[]
+  importedImages Image[]
+  auditLogs      AuditLog[]
+}
+
+model Instance {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  containerId   String?
+  imageTag      String         @default("1panel/openclaw:2026.5.7")
+  port          Int            @unique
+  provider      String
+  model         String
+  apiKey        String         // Encrypted with AES-256-GCM before storage (see lib/crypto.ts)
+  baseUrl       String?
+  bindAddress   String         @default("127.0.0.1")
+  allowedOrigin String?
+  cpuLimit      Float          @default(2.0)
+  memoryLimit   String         @default("2G")
+  dataDir       String?
+  gatewayToken  String       @default("")
+  status        InstanceStatus @default(creating)
+  createdAt     DateTime       @default(now())
+  createdBy     String
+  creator       User           @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy])
+  @@index([status])
+}
+
+model Image {
+  id             String   @id @default(cuid())
+  repository     String   @default("openclaw/openclaw")
+  tag            String
+  digest         String   @unique
+  os             String   @default("linux")
+  architecture   String   // amd64 or arm64
+  compressedSize Int      // bytes
+  isActive       Boolean  @default(false)
+  pushedAt       DateTime
+  importedAt     DateTime @default(now())
+  importedBy     String
+  importer       User     @relation(fields: [importedBy], references: [id])
+
+  @@index([isActive])
+  @@index([pushedAt])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String   // import, activate, delete
+  resource    String   // "image"
+  resourceId  String?  // image id
+  metadata    String?  // JSON: { tag, digest }
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ActivityLog {
+  id            BigInt    @id @default(autoincrement())
+  userId        String?
+  userName      String
+  userEmail     String
+  eventCategory String
+  eventType     String
+  eventDesc     String
+  targetType    String?
+  targetId      String?
+  targetName    String?
+  result        String
+  failReason    String?
+  ipAddress     String?
+  userAgent     String?
+  extra         String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([result])
+  @@index([ipAddress])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId, eventCategory, createdAt(sort: Desc)])
+}
