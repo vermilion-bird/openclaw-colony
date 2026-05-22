@@ -12,6 +12,7 @@ export type EventType =
   | 'openclaw.delete'
   | 'openclaw.start'
   | 'openclaw.stop'
+  | 'openclaw.restart'
   // IMAGE
   | 'image.import'
   | 'image.activate'

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { restartContainer } from '@/lib/docker'
+import { logActivity } from '@/lib/activity-log'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -11,6 +12,38 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { id } = await params
   const instance = await prisma.instance.findUnique({ where: { id } })
   if (!instance?.containerId) return NextResponse.json({ error: 'Not found or no container' }, { status: 404 })
-  await restartContainer(instance.containerId)
-  return NextResponse.json({ status: 'running' })
+
+  try {
+    await restartContainer(instance.containerId)
+
+    await logActivity({
+      userId: session.user.id,
+      userName: session.user.email ?? 'unknown',
+      userEmail: session.user.email ?? 'unknown',
+      eventCategory: 'OPENCLAW',
+      eventType: 'openclaw.restart',
+      eventDesc: `重启实例 ${instance.name}`,
+      targetType: 'instance',
+      targetId: id,
+      targetName: instance.name,
+      result: 'success',
+    })
+
+    return NextResponse.json({ status: 'running' })
+  } catch (error: any) {
+    await logActivity({
+      userId: session.user.id,
+      userName: session.user.email ?? 'unknown',
+      userEmail: session.user.email ?? 'unknown',
+      eventCategory: 'OPENCLAW',
+      eventType: 'openclaw.restart',
+      eventDesc: `重启实例 ${instance.name}`,
+      targetType: 'instance',
+      targetId: id,
+      targetName: instance.name,
+      result: 'failure',
+      failReason: error.message,
+    })
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 }
