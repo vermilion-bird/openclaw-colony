@@ -11,7 +11,7 @@ interface AgentConfig {
   id: string
   default?: boolean
   identity?: { name?: string; theme?: string; emoji?: string; avatar?: string }
-  model?: { primary: string; fallbacks?: string[] }
+  model?: string | { primary: string; fallbacks?: string[] }
   tools?: { profile?: string; allow?: string[]; deny?: string[] }
 }
 
@@ -129,7 +129,9 @@ export function AgentList({ instanceId, agents, bindings, onSaved }: Props) {
                         {agent.identity?.name ?? agent.id}
                         {agent.default && <Star className="w-3 h-3 text-yellow-500 ml-1 inline" />}
                       </div>
-                      <div className="text-xs text-gray-500">{agent.model?.primary}</div>
+                      <div className="text-xs text-gray-500">
+                        {typeof agent.model === 'string' ? agent.model : agent.model?.primary}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-1">

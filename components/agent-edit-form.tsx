@@ -12,7 +12,7 @@ interface AgentConfig {
   id: string
   default?: boolean
   identity?: { name?: string; theme?: string; emoji?: string; avatar?: string }
-  model?: { primary: string; fallbacks?: string[] }
+  model?: string | { primary: string; fallbacks?: string[] }
   tools?: { profile?: string; allow?: string[]; deny?: string[] }
 }
 
@@ -38,15 +38,36 @@ function generateId(): string {
   return 'agent-' + Math.random().toString(36).substring(2, 8)
 }
 
+function normalizeModel(model: AgentConfig['model']): { primary: string; fallbacks?: string[] } {
+  if (!model) return { primary: '' }
+  if (typeof model === 'string') return { primary: model }
+  return model
+}
+
 export function AgentEditForm({ instanceId, initialAgent, existingIds, onSave, onCancel }: Props) {
   const [agent, setAgent] = useState<AgentConfig>(
-    initialAgent ?? { id: generateId(), default: false, identity: {}, model: { primary: '' }, tools: {} }
+    initialAgent ? {
+      ...initialAgent,
+      model: normalizeModel(initialAgent.model),
+    } : { id: generateId(), default: false, identity: {}, model: { primary: '' }, tools: {} }
   )
   const [newFallback, setNewFallback] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
   const isEdit = initialAgent !== null
+
+  function getModelPrimary(): string {
+    const m = agent.model
+    if (!m) return ''
+    return typeof m === 'string' ? m : m.primary
+  }
+
+  function getModelFallbacks(): string[] {
+    const m = agent.model
+    if (!m || typeof m === 'string') return []
+    return m.fallbacks ?? []
+  }
 
   function update<K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) {
     setAgent(a => ({ ...a, [key]: value }))
@@ -61,15 +82,15 @@ export function AgentEditForm({ instanceId, initialAgent, existingIds, onSave, o
 
   function addFallback() {
     if (newFallback.trim()) {
-      const fallbacks = agent.model?.fallbacks ?? []
-      update('model', { ...agent.model!, fallbacks: [...fallbacks, newFallback.trim()] })
+      const fallbacks = getModelFallbacks()
+      update('model', { primary: getModelPrimary(), fallbacks: [...fallbacks, newFallback.trim()] })
       setNewFallback('')
     }
   }
 
   function removeFallback(index: number) {
-    const fallbacks = agent.model?.fallbacks ?? []
-    update('model', { ...agent.model!, fallbacks: fallbacks.filter((_, i) => i !== index) })
+    const fallbacks = getModelFallbacks()
+    update('model', { primary: getModelPrimary(), fallbacks: fallbacks.filter((_, i) => i !== index) })
   }
 
   function handleSave() {
@@ -85,7 +106,7 @@ export function AgentEditForm({ instanceId, initialAgent, existingIds, onSave, o
       return
     }
 
-    if (!agent.model?.primary) {
+    if (!getModelPrimary()) {
       setError('主模型不能为空')
       return
     }
@@ -147,8 +168,8 @@ export function AgentEditForm({ instanceId, initialAgent, existingIds, onSave, o
             <Label htmlFor="primary">主模型 *</Label>
             <Input
               id="primary"
-              value={agent.model?.primary ?? ''}
-              onChange={e => update('model', { ...agent.model!, primary: e.target.value })}
+              value={getModelPrimary()}
+              onChange={e => update('model', { primary: e.target.value, fallbacks: getModelFallbacks() })}
               placeholder="provider/model-name"
               list="model-hints"
             />
@@ -170,9 +191,9 @@ export function AgentEditForm({ instanceId, initialAgent, existingIds, onSave, o
                 <Plus className="w-3 h-3" />
               </Button>
             </div>
-            {agent.model?.fallbacks && agent.model.fallbacks.length > 0 && (
+            {getModelFallbacks().length > 0 && (
               <div className="space-y-1 mt-2">
-                {agent.model.fallbacks.map((model, i) => (
+                {getModelFallbacks().map((model, i) => (
                   <div
                     key={i}
                     className="flex items-center justify-between p-2 bg-gray-50 rounded"

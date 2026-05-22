@@ -22,7 +22,7 @@ interface AgentConfig {
   id: string
   default?: boolean
   identity?: { name?: string; theme?: string; emoji?: string; avatar?: string }
-  model?: { primary: string; fallbacks?: string[] }
+  model?: string | { primary: string; fallbacks?: string[] }
   tools?: { profile?: string; allow?: string[]; deny?: string[] }
 }
 
