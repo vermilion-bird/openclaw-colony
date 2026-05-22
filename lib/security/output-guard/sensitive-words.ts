@@ -17,7 +17,7 @@ export const DEFAULT_SENSITIVE_WORDS: SensitiveWordConfig = {
       name: 'fraud_indicators',
       words: ['转账', '汇款', '投资回报', '理财产品', '高收益', '保本保息'],
       riskLevel: 'medium',
-      action: 'warn',
+      action: 'reject',
     },
   ],
 }
