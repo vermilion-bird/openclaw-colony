@@ -169,13 +169,38 @@ export default function NewInstancePage() {
               <div className="mt-3 space-y-4 pl-2 border-l-2 border-gray-100">
                 <div className="space-y-1">
                   <Label htmlFor="imageTag">镜像 Tag</Label>
-                  <Input
-                    id="imageTag"
-                    value={form.imageTag}
-                    onChange={e => set('imageTag', e.target.value)}
-                    placeholder={activeImage ? `${activeImage.repository}:${activeImage.tag}` : 'openclaw/openclaw:latest'}
-                  />
-                  {activeImage && (
+                  <div className="flex gap-2">
+                    {imageSelectMode ? (
+                      <Select value={form.imageTag} onValueChange={v => set('imageTag', v ?? '')}>
+                        <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {importedImages.map(img => (
+                            <SelectItem key={img.id} value={`${img.repository}:${img.tag}`}>
+                              {img.repository}:{img.tag}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="imageTag"
+                        className="flex-1"
+                        value={form.imageTag}
+                        onChange={e => set('imageTag', e.target.value)}
+                        placeholder={activeImage ? `${activeImage.repository}:${activeImage.tag}` : 'openclaw/openclaw:latest'}
+                      />
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setImageSelectMode(!imageSelectMode)}
+                      className="whitespace-nowrap"
+                    >
+                      {imageSelectMode ? '手动输入' : '选择镜像'}
+                    </Button>
+                  </div>
+                  {activeImage && !imageSelectMode && (
                     <p className="text-xs text-gray-400">当前生效镜像: {activeImage.repository}:{activeImage.tag}</p>
                   )}
                 </div>
