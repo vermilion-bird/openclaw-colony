@@ -34,8 +34,9 @@ export async function classifyIntent(message: string): Promise<IntentResult> {
   }
 
   // 简单规则 mock：检测明显操控词汇返回 manipulative
+  // Note: "你现在" removed due to high false positive risk - it's commonly used
+  // in benign messages like "你现在在哪里" (where are you now)
   const suspiciousPhrases = [
-    '你现在',
     '扮演',
     '忽略',
     '系统指令',
@@ -44,15 +45,41 @@ export async function classifyIntent(message: string): Promise<IntentResult> {
     'ignore',
   ]
 
-  const hasSuspicious = suspiciousPhrases.some(p =>
-    message.toLowerCase().includes(p.toLowerCase())
-  )
+  // 弱指标：单独出现可能是误报
+  const weakIndicators = ['你的指令', '系统提示', 'reveal']
 
-  if (hasSuspicious) {
+  const suspiciousCount = suspiciousPhrases.filter(p =>
+    message.toLowerCase().includes(p.toLowerCase())
+  ).length
+
+  const weakCount = weakIndicators.filter(p =>
+    message.toLowerCase().includes(p.toLowerCase())
+  ).length
+
+  // 多个强指标 → manipulative
+  if (suspiciousCount >= 2) {
+    return {
+      intent: 'manipulative',
+      confidence: 0.8,
+      reason: '消息包含多个操控词汇',
+    }
+  }
+
+  // 单个强指标 → manipulative (置信度较低)
+  if (suspiciousCount === 1) {
     return {
       intent: 'manipulative',
       confidence: 0.6,
       reason: '消息包含疑似操控词汇',
+    }
+  }
+
+  // 仅弱指标 → ambiguous (不确定)
+  if (weakCount >= 1) {
+    return {
+      intent: 'ambiguous',
+      confidence: 0.5,
+      reason: '消息包含可能的操控指标，需要进一步判断',
     }
   }
 
@@ -73,6 +100,8 @@ export interface IntentClassifierOptions {
 }
 
 export function createIntentClassifier(options: IntentClassifierOptions) {
+  // Note: The options parameter is intentionally ignored in this mock implementation.
+  // It will be used when integrating with real model API calls.
   // 返回真实的模型调用函数
   // 实际部署时实现
   return classifyIntent // 目前返回 mock
