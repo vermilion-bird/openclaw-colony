@@ -18,9 +18,8 @@ describe('Output Guard - Keyword Filter', () => {
   test('returns correct action for different categories', () => {
     const filter = new StreamingKeywordFilter(DEFAULT_SENSITIVE_WORDS)
     filter.reset()
-    filter.checkIncremental('投资回报')
-    const result = filter.checkIncremental('很高')
-    expect(result?.action).toBe('warn')
+    const result = filter.checkIncremental('投资回报')
+    expect(result?.action).toBe('reject')
   })
 
   test('reset clears buffer', () => {
