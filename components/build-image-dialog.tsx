@@ -48,7 +48,8 @@ export function BuildImageDialog({ open, onClose, onBuilt, images }: Props) {
   }, [logs])
 
   // When base image changes, generate Dockerfile template
-  function handleBaseImageChange(value: string) {
+  function handleBaseImageChange(value: string | null) {
+    if (!value) return
     setBaseImageId(value)
     const baseImage = images.find(img => img.id === value)
     if (baseImage) {
