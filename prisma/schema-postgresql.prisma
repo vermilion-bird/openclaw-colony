@@ -68,9 +68,14 @@ model Image {
   importedAt     DateTime @default(now())
   importedBy     String
   importer       User     @relation(fields: [importedBy], references: [id])
+  // Build-related fields
+  buildType      String   @default("import")  // 'import' | 'build'
+  dockerfile     String?  // Dockerfile content (for built images)
+  baseImageId    String?  // Base image ID (for built images)
 
   @@index([isActive])
   @@index([pushedAt])
+  @@index([buildType])
 }
 
 model AuditLog {
