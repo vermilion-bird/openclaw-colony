@@ -85,12 +85,14 @@ export type OpenclawConfigUpdateInput = z.infer<typeof openclawConfigUpdateSchem
 
 export const importImageSchema = z.object({
   tag: z.string().min(1, 'Tag 不能为空').max(128),
+  repository: z.enum(['dockerhub', 'ghcr']).default('dockerhub'),
 })
 
 export type ImportImageInput = z.infer<typeof importImageSchema>
 
 export const validateTagSchema = z.object({
   tag: z.string().min(1, 'Tag 不能为空').max(128),
+  repository: z.enum(['dockerhub', 'ghcr']).default('dockerhub'),
 })
 
 export type ValidateTagInput = z.infer<typeof validateTagSchema>

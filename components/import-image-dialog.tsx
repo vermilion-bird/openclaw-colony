@@ -12,6 +12,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ExternalLink, Loader2 } from 'lucide-react'
 
 interface Props {
@@ -27,6 +34,7 @@ interface PreviewInfo {
   architecture: string
   compressedSize: number
   pushedAt: string
+  repository?: string
 }
 
 function formatSize(bytes: number): string {
@@ -35,6 +43,7 @@ function formatSize(bytes: number): string {
 }
 
 export function ImportImageDialog({ open, onClose, onImported }: Props) {
+  const [repository, setRepository] = useState<'dockerhub' | 'ghcr'>('dockerhub')
   const [tag, setTag] = useState('')
   const [preview, setPreview] = useState<PreviewInfo | null>(null)
   const [error, setError] = useState('')
@@ -51,7 +60,7 @@ export function ImportImageDialog({ open, onClose, onImported }: Props) {
       const res = await fetch('/api/images/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tag: tag.trim() }),
+        body: JSON.stringify({ tag: tag.trim(), repository }),
       })
       const data = await res.json()
 
@@ -76,7 +85,7 @@ export function ImportImageDialog({ open, onClose, onImported }: Props) {
       const res = await fetch('/api/images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tag: preview.tag }),
+        body: JSON.stringify({ tag: preview.tag, repository }),
       })
       const data = await res.json()
 
@@ -99,8 +108,12 @@ export function ImportImageDialog({ open, onClose, onImported }: Props) {
     setTag('')
     setPreview(null)
     setError('')
+    setRepository('dockerhub')
     onClose()
   }
+
+  const hubUrl = 'https://hub.docker.com/r/openclaw/openclaw/tags'
+  const ghcrUrl = 'https://github.com/openclaw-org/openclaw/pkgs/container/openclaw'
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -108,27 +121,54 @@ export function ImportImageDialog({ open, onClose, onImported }: Props) {
         <DialogHeader>
           <DialogTitle>导入镜像</DialogTitle>
           <DialogDescription>
-            输入 Docker Hub openclaw/openclaw 仓库的 Tag 版本号
-            <a
-              href="https://hub.docker.com/r/openclaw/openclaw/tags"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 ml-1 text-blue-600 hover:underline"
-            >
-              <ExternalLink className="w-3 h-3" />
-              查看所有可用 Tag
-            </a>
+            选择镜像仓库来源，输入 Tag 版本号
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>镜像仓库</Label>
+            <Select value={repository} onValueChange={v => setRepository(v as 'dockerhub' | 'ghcr')}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dockerhub">Docker Hub (openclaw/openclaw)</SelectItem>
+                <SelectItem value="ghcr">GitHub (ghcr.io/openclaw/openclaw)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500">
+              {repository === 'dockerhub' ? (
+                <a
+                  href={hubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  查看所有可用 Tag
+                </a>
+              ) : (
+                <a
+                  href={ghcrUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  查看 GitHub Container Registry
+                </a>
+              )}
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="tag">Tag</Label>
             <Input
               id="tag"
               value={tag}
               onChange={e => setTag(e.target.value)}
-              placeholder="如 latest、v1.2.0"
+              placeholder="如 latest、2026.5.18"
             />
           </div>
 
@@ -139,7 +179,7 @@ export function ImportImageDialog({ open, onClose, onImported }: Props) {
             className="w-full"
           >
             {validating && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
-            查询
+            {repository === 'ghcr' ? '拉取并查询' : '查询'}
           </Button>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
@@ -147,6 +187,10 @@ export function ImportImageDialog({ open, onClose, onImported }: Props) {
           {preview && (
             <Card className="bg-gray-50">
               <CardContent className="pt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">仓库:</span>
+                  <span className="font-medium">{preview.repository}</span>
+                </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Tag:</span>
                   <span className="font-medium">{preview.tag}</span>
