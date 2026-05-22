@@ -16,6 +16,44 @@ export interface ModelConfig {
   fallbacks?: string[]
 }
 
+export interface AgentIdentity {
+  name?: string
+  theme?: string
+  emoji?: string
+  avatar?: string
+}
+
+export interface AgentTools {
+  profile?: 'minimal' | 'coding' | 'messaging' | 'full'
+  allow?: string[]
+  deny?: string[]
+}
+
+export interface AgentConfig {
+  id: string
+  default?: boolean
+  identity?: AgentIdentity
+  model?: string | ModelConfig
+  tools?: AgentTools
+}
+
+export interface BindingMatch {
+  channel?: string
+  peer?: string
+  guildId?: string
+  accountId?: string
+  teamId?: string
+}
+
+export interface BindingConfig {
+  agentId: string
+  match: BindingMatch
+}
+
+export interface AgentsConfig {
+  list?: AgentConfig[]
+}
+
 export interface OpenClawConfig {
   channels?: {
     feishu?: FeishuConfig
@@ -24,7 +62,9 @@ export interface OpenClawConfig {
     defaults?: {
       model?: ModelConfig
     }
+    list?: AgentConfig[]
   }
+  bindings?: BindingConfig[]
   gateway?: {
     reload?: {
       mode?: string
@@ -41,7 +81,9 @@ const DEFAULT_CONFIG: OpenClawConfig = {
         fallbacks: [],
       },
     },
+    list: [],
   },
+  bindings: [],
 }
 
 export function getOpenClawConfigPath(dataDir: string): string {
@@ -61,6 +103,7 @@ export function readOpenClawConfig(dataDir: string): OpenClawConfig {
       ...parsed,
       channels: { ...DEFAULT_CONFIG.channels, ...parsed.channels },
       agents: { ...DEFAULT_CONFIG.agents, ...parsed.agents },
+      bindings: parsed.bindings ?? DEFAULT_CONFIG.bindings,
     }
   } catch {
     return DEFAULT_CONFIG
@@ -148,4 +191,25 @@ export function mergeModelConfig(
       },
     },
   }
+}
+
+export function mergeAgentsConfig(
+  existing: OpenClawConfig,
+  agents?: AgentsConfig,
+  bindings?: BindingConfig[]
+): OpenClawConfig {
+  const result = { ...existing }
+
+  if (agents?.list) {
+    result.agents = {
+      ...existing.agents,
+      list: agents.list,
+    }
+  }
+
+  if (bindings) {
+    result.bindings = bindings
+  }
+
+  return result
 }
