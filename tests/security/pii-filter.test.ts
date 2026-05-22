@@ -2,6 +2,7 @@
 import { describe, test, expect } from 'vitest'
 import { detectPII, maskPII, DEFAULT_DETECTORS } from '@/lib/security/pii-filter/detectors'
 import { maskIdCard, maskPhone, maskBankCard, maskEmail, maskPassport, createCustomMasker } from '@/lib/security/pii-filter/maskers'
+import { loadCustomRules, validateRuleConfig } from '@/lib/security/pii-filter/custom-rules'
 
 describe('PII Filter - Detection', () => {
   test('detects China ID card', () => {
@@ -101,5 +102,37 @@ describe('PII Filter - Masker Functions', () => {
     const customMasker = createCustomMasker('PREFIX:{{prefix}} SUFFIX:{{suffix}}')
     expect(customMasker('123456789')).toContain('PREFIX:')
     expect(customMasker('123456789')).toContain('SUFFIX:')
+  })
+})
+
+describe('PII Filter - Custom Rules', () => {
+  test('createCustomMasker works with template', () => {
+    const masker = createCustomMasker('EMP****')
+    expect(masker('EMP123456')).toBe('EMP****')
+  })
+
+  test('validateRuleConfig accepts valid config', () => {
+    const config = {
+      rules: [
+        { name: 'employee_id', pattern: '\\bEMP\\d{6}\\b', maskTemplate: 'EMP****', enabled: true }
+      ]
+    }
+    const result = validateRuleConfig(config)
+    expect(result.valid).toBe(true)
+  })
+
+  test('validateRuleConfig rejects missing required fields', () => {
+    const config = {
+      rules: [
+        { name: 'bad_rule', pattern: '\\bEMP\\d{6}\\b' } // missing maskTemplate
+      ]
+    }
+    const result = validateRuleConfig(config)
+    expect(result.valid).toBe(false)
+  })
+
+  test('loadCustomRules returns empty array for missing file', () => {
+    const rules = loadCustomRules('/nonexistent/path/rules.json')
+    expect(rules).toEqual([])
   })
 })
