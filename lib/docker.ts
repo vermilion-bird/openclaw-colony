@@ -159,3 +159,93 @@ export async function deleteDataDirectory(hostDataDir: string): Promise<void> {
   // Wait for container to finish (it auto-removes)
   await container.wait()
 }
+
+export interface BuildImageOptions {
+  dockerfile: string
+  imageName: string
+  imageTag: string
+}
+
+export interface BuildResult {
+  imageId: string
+  digest: string
+  success: boolean
+  error?: string
+}
+
+export async function buildImage(opts: BuildImageOptions): Promise<AsyncGenerator<string, BuildResult>> {
+  const docker = getDockerClient()
+  const tempDir = `/tmp/build-${Date.now()}`
+  const fs = await import('fs/promises')
+  const path = await import('path')
+
+  // Create temp directory and write Dockerfile
+  await fs.mkdir(tempDir, { recursive: true })
+  await fs.writeFile(path.join(tempDir, 'Dockerfile'), opts.dockerfile)
+
+  const fullTag = `${opts.imageName}:${opts.imageTag}`
+
+  async function* generate(): AsyncGenerator<string, BuildResult> {
+    try {
+      const stream = await docker.buildImage({
+        context: tempDir,
+        src: ['Dockerfile'],
+      }, {
+        t: fullTag,
+        dockerfile: 'Dockerfile',
+      })
+
+      // Stream build logs
+      for await (const chunk of stream as AsyncIterable<Buffer>) {
+        const lines = chunk.toString().split('\n').filter(l => l.trim())
+        for (const line of lines) {
+          try {
+            const parsed = JSON.parse(line)
+            if (parsed.stream) {
+              yield parsed.stream.trim()
+            } else if (parsed.error) {
+              yield `ERROR: ${parsed.error.trim()}`
+            }
+          } catch {
+            yield line
+          }
+        }
+      }
+
+      // Get image info after build
+      const image = await docker.getImage(fullTag).inspect()
+
+      // Cleanup temp directory
+      await fs.rm(tempDir, { recursive: true, force: true })
+
+      return {
+        imageId: image.Id,
+        digest: image.RepoDigests?.[0]?.split('@')[1] ?? image.Id,
+        success: true,
+      }
+    } catch (err: any) {
+      // Cleanup on error
+      await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
+      return {
+        imageId: '',
+        digest: '',
+        success: false,
+        error: err.message ?? '构建失败',
+      }
+    }
+  }
+
+  return generate()
+}
+
+// Generate Dockerfile template from base image
+export function generateDockerfileTemplate(repository: string, tag: string): string {
+  return `FROM ${repository}:${tag}
+
+# 在此添加自定义配置
+# 示例：
+# RUN apk add --no-cache vim curl
+# ENV MY_VAR=value
+# COPY custom-config.yaml /app/config/
+`
+}
