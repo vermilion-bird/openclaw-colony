@@ -101,7 +101,7 @@ export function AgentBindingsForm({ value, onChange, agentOptions }: Props) {
                 <Label className="text-xs">Agent</Label>
                 <Select
                   value={newBinding.agentId}
-                  onValueChange={v => updateNewBinding('agentId', v)}
+                  onValueChange={v => v && updateNewBinding('agentId', v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="选择 Agent" />
@@ -120,7 +120,7 @@ export function AgentBindingsForm({ value, onChange, agentOptions }: Props) {
                 <Label className="text-xs">渠道类型</Label>
                 <Select
                   value={newBinding.match.channel ?? 'feishu'}
-                  onValueChange={v => updateNewMatch('channel', v)}
+                  onValueChange={v => v && updateNewMatch('channel', v)}
                 >
                   <SelectTrigger>
                     <SelectValue />

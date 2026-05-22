@@ -69,7 +69,7 @@ export function ToolConfigForm({ value, onChange }: Props) {
         <Label>工具权限级别</Label>
         <Select
           value={value.profile ?? 'coding'}
-          onValueChange={v => update('profile', v as ToolConfig['profile'])}
+          onValueChange={v => v && update('profile', v as ToolConfig['profile'])}
         >
           <SelectTrigger className="w-full">
             <SelectValue />
