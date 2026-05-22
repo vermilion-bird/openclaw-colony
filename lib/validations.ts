@@ -107,3 +107,12 @@ export const activityLogQuerySchema = z.object({
 })
 
 export type ActivityLogQueryInput = z.infer<typeof activityLogQuerySchema>
+
+export const buildImageSchema = z.object({
+  baseImageId: z.string().min(1, '基础镜像不能为空'),
+  dockerfile: z.string().min(1, 'Dockerfile 不能为空'),
+  imageName: z.string().regex(/^[a-z0-9-]+$/, '镜像名只能包含小写字母、数字和横杠'),
+  imageTag: z.string().regex(/^[a-zA-Z0-9._-]+$/, 'Tag 格式无效'),
+})
+
+export type BuildImageInput = z.infer<typeof buildImageSchema>
