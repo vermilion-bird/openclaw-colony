@@ -23,7 +23,7 @@ interface AgentConfig {
   default?: boolean
   identity?: { name?: string; theme?: string; emoji?: string; avatar?: string }
   model?: string | { primary: string; fallbacks?: string[] }
-  tools?: { profile?: string; allow?: string[]; deny?: string[] }
+  tools?: { profile?: 'minimal' | 'coding' | 'messaging' | 'full'; allow?: string[]; deny?: string[] }
 }
 
 interface BindingConfig {
