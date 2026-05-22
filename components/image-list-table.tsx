@@ -14,6 +14,7 @@ export interface ImageRow {
   isActive: boolean
   pushedAt: string
   importedAt: string
+  buildType?: string
 }
 
 interface Props {
@@ -58,6 +59,7 @@ export function ImageListTable({ images, onActivate, onDelete, loading }: Props)
           <th className="pb-2 font-medium">大小</th>
           <th className="pb-2 font-medium">推送时间</th>
           <th className="pb-2 font-medium">状态</th>
+          <th className="pb-2 font-medium">来源</th>
           <th className="pb-2 font-medium">操作</th>
         </tr>
       </thead>
@@ -76,6 +78,13 @@ export function ImageListTable({ images, onActivate, onDelete, loading }: Props)
                 <Badge className="bg-green-100 text-green-700 border-green-200">生效</Badge>
               ) : (
                 <Badge variant="secondary">未生效</Badge>
+              )}
+            </td>
+            <td className="py-3">
+              {img.buildType === 'build' ? (
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200">构建</Badge>
+              ) : (
+                <Badge className="bg-gray-100 text-gray-700 border-gray-200">导入</Badge>
               )}
             </td>
             <td className="py-3">
