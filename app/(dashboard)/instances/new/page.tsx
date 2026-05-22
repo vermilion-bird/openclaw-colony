@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PROVIDERS } from '@/lib/validations'
 import { AlertTriangle } from 'lucide-react'
+import { ImageRow } from '@/components/image-list-table'
 
 interface ActiveImage {
   repository: string
@@ -18,6 +19,8 @@ export default function NewInstancePage() {
   const router = useRouter()
   const [activeImage, setActiveImage] = useState<ActiveImage | null>(null)
   const [noActiveImage, setNoActiveImage] = useState(false)
+  const [imageSelectMode, setImageSelectMode] = useState(false)
+  const [importedImages, setImportedImages] = useState<ImageRow[]>([])
   const [form, setForm] = useState({
     name: '', imageTag: '', port: '18789',
     provider: 'deepseek', model: '', apiKey: '', baseUrl: '',
@@ -41,6 +44,12 @@ export default function NewInstancePage() {
         }
       })
       .catch(() => setNoActiveImage(true))
+
+    // Fetch all imported images for selector
+    fetch('/api/images')
+      .then(res => res.json())
+      .then(data => setImportedImages(data.images || []))
+      .catch(() => setImportedImages([]))
   }, [])
 
   function set(key: string, val: string) { setForm(f => ({ ...f, [key]: val })) }
