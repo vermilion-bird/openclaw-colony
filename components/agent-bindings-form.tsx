@@ -66,7 +66,7 @@ export function AgentBindingsForm({ value, onChange, agentOptions }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-xs text-gray-500">
-            将特定渠道（群聊/私聊）绑定到 Agent。匹配优先级：peer > guildId > teamId > accountId
+            将特定渠道（群聊/私聊）绑定到 Agent。匹配优先级：peer &gt; guildId &gt; teamId &gt; accountId
           </p>
 
           {value.length > 0 && (
