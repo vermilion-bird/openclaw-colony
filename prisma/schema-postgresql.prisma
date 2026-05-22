@@ -62,7 +62,7 @@ model Image {
   digest         String   @unique
   os             String   @default("linux")
   architecture   String   // amd64 or arm64
-  compressedSize Int      // bytes
+  compressedSize BigInt    // bytes
   isActive       Boolean  @default(false)
   pushedAt       DateTime
   importedAt     DateTime @default(now())
