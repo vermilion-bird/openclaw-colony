@@ -5,6 +5,7 @@ import { Trash2, CheckCircle } from 'lucide-react'
 
 export interface ImageRow {
   id: string
+  repository: string
   tag: string
   digest: string
   os: string
