@@ -4,9 +4,10 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus } from 'lucide-react'
+import { Plus, Hammer } from 'lucide-react'
 import { ImageListTable, ImageRow } from '@/components/image-list-table'
 import { ImportImageDialog } from '@/components/import-image-dialog'
+import { BuildImageDialog } from '@/components/build-image-dialog'
 import { DeleteImageDialog } from '@/components/delete-image-dialog'
 import { toast } from 'sonner'
 
@@ -16,6 +17,7 @@ export default function ImagesPage() {
   const [images, setImages] = useState<ImageRow[]>([])
   const [loading, setLoading] = useState(true)
   const [importOpen, setImportOpen] = useState(false)
+  const [buildOpen, setBuildOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; isActive: boolean } | null>(null)
 
   const fetchImages = useCallback(async () => {
@@ -68,6 +70,10 @@ export default function ImagesPage() {
           <Plus className="w-4 h-4 mr-1" />
           导入镜像
         </Button>
+        <Button size="sm" onClick={() => setBuildOpen(true)}>
+          <Hammer className="w-4 h-4 mr-1" />
+          构建镜像
+        </Button>
       </div>
 
       <Card>
@@ -88,6 +94,13 @@ export default function ImagesPage() {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImported={fetchImages}
+      />
+
+      <BuildImageDialog
+        open={buildOpen}
+        onClose={() => setBuildOpen(false)}
+        onBuilt={fetchImages}
+        images={images}
       />
 
       <DeleteImageDialog
