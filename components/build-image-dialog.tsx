@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Hammer } from 'lucide-react'
 import { ImageRow } from '@/components/image-list-table'
-import { generateDockerfileTemplate } from '@/lib/docker'
+import { generateDockerfileTemplate } from '@/lib/docker-template'
 
 interface Props {
   open: boolean
