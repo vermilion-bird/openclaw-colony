@@ -70,6 +70,44 @@ export const modelConfigSchema = z.object({
 
 export type ModelConfigInput = z.infer<typeof modelConfigSchema>
 
+export const agentSchema = z.object({
+  id: z.string().min(1, 'Agent ID is required').regex(/^[\w-]+$/, 'Agent ID must be alphanumeric with dashes'),
+  default: z.boolean().optional(),
+  identity: z.object({
+    name: z.string().optional(),
+    theme: z.string().optional(),
+    emoji: z.string().optional(),
+    avatar: z.string().optional(),
+  }).optional(),
+  model: z.union([
+    z.string(),
+    z.object({
+      primary: z.string(),
+      fallbacks: z.array(z.string()).optional(),
+    }),
+  ]).optional(),
+  tools: z.object({
+    profile: z.enum(['minimal', 'coding', 'messaging', 'full']).optional(),
+    allow: z.array(z.string()).optional(),
+    deny: z.array(z.string()).optional(),
+  }).optional(),
+})
+
+export type AgentInput = z.infer<typeof agentSchema>
+
+export const bindingSchema = z.object({
+  agentId: z.string().min(1, 'Agent ID is required'),
+  match: z.object({
+    channel: z.string().optional(),
+    peer: z.string().optional(),
+    guildId: z.string().optional(),
+    accountId: z.string().optional(),
+    teamId: z.string().optional(),
+  }),
+})
+
+export type BindingInput = z.infer<typeof bindingSchema>
+
 export const openclawConfigUpdateSchema = z.object({
   channels: z.object({
     feishu: feishuConfigSchema.optional(),
@@ -78,7 +116,9 @@ export const openclawConfigUpdateSchema = z.object({
     defaults: z.object({
       model: modelConfigSchema.optional(),
     }).optional(),
+    list: z.array(agentSchema).optional(),
   }).optional(),
+  bindings: z.array(bindingSchema).optional(),
 })
 
 export type OpenclawConfigUpdateInput = z.infer<typeof openclawConfigUpdateSchema>
