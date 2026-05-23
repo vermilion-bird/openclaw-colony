@@ -43,5 +43,5 @@ export async function check(message: string): Promise<SecurityResult> {
   }
 }
 
-export { quickScan, classifyIntent, INJECTION_PATTERNS } from './keyword-detector'
-export { INTENT_PROMPT } from './intent-classifier'
+export { quickScan, INJECTION_PATTERNS } from './keyword-detector'
+export { classifyIntent, INTENT_PROMPT } from './intent-classifier'

@@ -5,7 +5,7 @@ import { OutputGuard } from './output-guard'
 import { WhitelistManager } from './config/whitelist'
 import { SecurityLogger } from './logger'
 
-export {
+export type {
   SecurityContext, SecurityResult, SecurityConfig,
   SecurityEvent, PIIMatch, PIIDetector,
 } from './types'
