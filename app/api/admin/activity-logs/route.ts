@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
   ])
 
   return NextResponse.json({
-    data: logs.map(log => ({ ...log, id: Number(log.id) })),
+    data: logs.map((log: any) => ({ ...log, id: Number(log.id) })),
     pagination: {
       page,
       pageSize,

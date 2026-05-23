@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   // Enrich with live Docker status
   const enriched = await Promise.all(
-    instances.map(async (inst) => {
+    instances.map(async (inst: any) => {
       let liveStatus = inst.status
       if (inst.containerId) {
         try {

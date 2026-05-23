@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Colony - AI 网关集群管理平台</title>
+  <meta name="description" content="在单台宿主机上管理和监控多个 OpenClaw 代理实例，通过 Docker 实现快速部署、资源隔离和统一管理">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(to bottom, #1e293b, #0f172a);
+      color: white;
+      min-height: 100vh;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    header { border-bottom: 1px solid #334155; }
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #f97316, #dc2626);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-text { font-size: 20px; font-weight: bold; }
+    .github-link {
+      display: flex; align-items: center; gap: 8px;
+      color: #cbd5e1; text-decoration: none;
+    }
+    .github-link:hover { color: white; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 80px 0; }
+    .hero h1 { font-size: 48px; margin-bottom: 24px; }
+    .hero h1 span { color: #f97316; }
+    .hero p { font-size: 20px; color: #94a3b8; max-width: 700px; margin: 0 auto 32px; }
+    .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 24px; border-radius: 8px; font-weight: 500;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .btn-primary { background: #f97316; color: white; }
+    .btn-primary:hover { background: #ea580c; }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-secondary:hover { background: #475569; }
+
+    /* Architecture */
+    .architecture {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 32px;
+      margin: 48px 0;
+      border: 1px solid #334155;
+    }
+    .architecture h2 { text-align: center; margin-bottom: 32px; }
+    .arch-flow {
+      display: flex; align-items: center; justify-content: center;
+      gap: 24px; flex-wrap: wrap;
+    }
+    .arch-node {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 100px;
+    }
+    .arch-icon {
+      width: 64px; height: 64px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 8px; font-size: 24px;
+    }
+    .arch-node span { color: #94a3b8; font-size: 14px; }
+    .arrow { color: #64748b; font-size: 24px; }
+
+    /* Features */
+    .features { padding: 64px 0; }
+    .features h2 { text-align: center; margin-bottom: 48px; font-size: 32px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+    .feature-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid #334155;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: #f97316; }
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px; font-size: 24px;
+    }
+    .feature-card h3 { font-size: 18px; margin-bottom: 8px; }
+    .feature-card p { color: #94a3b8; font-size: 14px; }
+
+    /* Security */
+    .security { padding: 64px 0; }
+    .security h2 { text-align: center; margin-bottom: 48px; font-size: 32px; }
+    .security-flow {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid #334155;
+    }
+    .security-layers { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; }
+    .security-layer { text-align: center; }
+    .layer-icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; font-size: 32px;
+    }
+    .security-layer h3 { font-size: 18px; margin-bottom: 8px; }
+    .security-layer p { color: #94a3b8; font-size: 14px; margin-bottom: 12px; }
+    .security-layer ul { color: #64748b; font-size: 12px; list-style: none; }
+    .security-layer li { margin: 4px 0; }
+    .flow-text {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; color: #64748b; font-size: 14px;
+      margin-top: 24px; flex-wrap: wrap;
+    }
+
+    /* Quick Start */
+    .quick-start { padding: 64px 0; }
+    .quick-start h2 { text-align: center; margin-bottom: 48px; font-size: 32px; }
+    .steps {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid #334155;
+    }
+    .step { margin-bottom: 24px; }
+    .step:last-child { margin-bottom: 0; }
+    .step-title {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 18px; margin-bottom: 12px;
+    }
+    .step-num {
+      width: 24px; height: 24px;
+      background: #f97316;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .step-code {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 8px;
+      color: #4ade80;
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    /* Tech Stack */
+    .tech-stack { padding: 64px 0; }
+    .tech-stack h2 { text-align: center; margin-bottom: 48px; font-size: 32px; }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+    }
+    .tech-item {
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Stats */
+    .stats { padding: 64px 0; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+    .stat-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      border: 1px solid #334155;
+    }
+    .stat-value { font-size: 36px; font-weight: bold; margin-bottom: 8px; }
+    .stat-label { color: #94a3b8; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid #334155;
+      padding: 32px 0;
+      margin-top: 64px;
+    }
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-text { color: #94a3b8; font-size: 14px; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: #94a3b8; text-decoration: none; }
+    .footer-links a:hover { color: white; }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .arch-flow { gap: 16px; }
+      .arrow { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">⚡</div>
+          <span class="logo-text">OpenClaw Colony</span>
+        </div>
+        <a href="https://github.com/vermilion-bird/openclaw-colony" class="github-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>OpenClaw AI 网关<span>集群管理平台</span></h1>
+      <p>在单台宿主机上管理和监控多个 OpenClaw 代理实例，通过 Docker 实现快速部署、资源隔离和统一管理</p>
+      <div class="hero-buttons">
+        <a href="https://github.com/vermilion-bird/openclaw-colony" class="btn btn-primary">快速开始</a>
+        <a href="#features" class="btn btn-secondary">了解更多</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="architecture">
+    <div class="container">
+      <h2>系统架构</h2>
+      <div class="arch-flow">
+        <div class="arch-node">
+          <div class="arch-icon" style="background: #3b82f6;">📊</div>
+          <span>浏览器</span>
+        </div>
+        <span class="arrow">→</span>
+        <div class="arch-node" style="background: linear-gradient(135deg, rgba(249,115,22,0.2), rgba(220,38,38,0.2)); padding: 24px; border-radius: 16px; border: 1px solid rgba(249,115,22,0.5);">
+          <div class="arch-icon" style="background: linear-gradient(135deg, #f97316, #dc2626); width: 80px; height: 80px;">⚡</div>
+          <span style="font-weight: bold;">Colony Manager</span>
+          <span style="font-size: 12px;">Next.js + Dockerode</span>
+        </div>
+        <span class="arrow">→</span>
+        <div class="arch-node">
+          <div class="arch-icon" style="background: #06b6d4;">🐳</div>
+          <span>Docker Socket</span>
+        </div>
+        <span class="arrow">→</span>
+        <div class="arch-node">
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <div class="arch-icon" style="background: #22c55e; width: 48px; height: 48px; font-size: 20px;">⚡</div>
+            <div class="arch-icon" style="background: #22c55e; width: 48px; height: 48px; font-size: 20px;">⚡</div>
+            <div class="arch-icon" style="background: #22c55e; width: 48px; height: 48px; font-size: 20px;">⚡</div>
+          </div>
+          <span>OpenClaw 实例</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <div class="container">
+      <h2>核心功能</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #f97316;">🐳</div>
+          <h3>实例管理</h3>
+          <p>创建、启动、停止、重启、删除 OpenClaw 实例，支持自定义镜像、端口、资源配置</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #3b82f6;">📊</div>
+          <h3>资源监控</h3>
+          <p>实时 CPU、内存使用率监控，流式日志查看，状态自动刷新</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #22c55e;">🛡️</div>
+          <h3>安全模块</h3>
+          <p>三层安全防护：输入层防注入、处理层 PII 脱敏、输出层合规审查</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #06b6d4;">🖥️</div>
+          <h3>镜像管理</h3>
+          <p>导入 Docker Hub/ghcr.io 镜像，自定义构建镜像，版本激活管理</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #a855f7;">⚙️</div>
+          <h3>用户管理</h3>
+          <p>Admin/Operator 双角色权限，用户创建、角色修改、审计日志</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #eab308;">⚡</div>
+          <h3>飞书集成</h3>
+          <p>飞书机器人配置，私聊/群聊策略，白名单管理</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="security">
+    <div class="container">
+      <h2>安全模块架构</h2>
+      <div class="security-flow">
+        <div class="security-layers">
+          <div class="security-layer">
+            <div class="layer-icon" style="background: #ef4444;">🔒</div>
+            <h3 style="color: #f87171;">输入层</h3>
+            <p>防 Prompt 注入</p>
+            <ul>
+              <li>关键词快速扫描 &lt;50ms</li>
+              <li>意图分类模型 ~150ms</li>
+              <li>阻断恶意指令</li>
+            </ul>
+          </div>
+          <div class="security-layer">
+            <div class="layer-icon" style="background: #eab308;">🔍</div>
+            <h3 style="color: #fbbf24;">处理层</h3>
+            <p>PII 识别脱敏</p>
+            <ul>
+              <li>身份证、手机、银行卡</li>
+              <li>自定义规则扩展</li>
+              <li>流式增量处理</li>
+            </ul>
+          </div>
+          <div class="security-layer">
+            <div class="layer-icon" style="background: #22c55e;">🛡️</div>
+            <h3 style="color: #4ade80;">输出层</h3>
+            <p>合规审查</p>
+            <ul>
+              <li>敏感词黑名单</li>
+              <li>内容分类模型</li>
+              <li>流式中断机制</li>
+            </ul>
+          </div>
+        </div>
+        <div class="flow-text">
+          <span>用户消息</span>
+          <span>→</span>
+          <span style="color: #f87171;">输入检查</span>
+          <span>→</span>
+          <span style="color: #fbbf24;">PII脱敏</span>
+          <span>→</span>
+          <span>代理处理</span>
+          <span>→</span>
+          <span style="color: #4ade80;">输出审查</span>
+          <span>→</span>
+          <span>安全响应</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quick-start">
+    <div class="container">
+      <h2>快速开始</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-title">
+            <div class="step-num">1</div>
+            <span>克隆项目</span>
+          </div>
+          <div class="step-code">git clone https://github.com/vermilion-bird/openclaw-colony.git</div>
+        </div>
+        <div class="step">
+          <div class="step-title">
+            <div class="step-num">2</div>
+            <span>配置环境变量</span>
+          </div>
+          <div class="step-code">cp .env.example .env
+# 编辑 .env 设置 NEXTAUTH_SECRET, ENCRYPTION_KEY 等</div>
+        </div>
+        <div class="step">
+          <div class="step-title">
+            <div class="step-num">3</div>
+            <span>Docker Compose 启动</span>
+          </div>
+          <div class="step-code">docker-compose up -d</div>
+        </div>
+        <div class="step">
+          <div class="step-title">
+            <div class="step-num">4</div>
+            <span>访问管理面板</span>
+          </div>
+          <div class="step-code">http://localhost:3000
+# 首次访问会引导创建 admin 账号</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tech-stack">
+    <div class="container">
+      <h2>技术栈</h2>
+      <div class="tech-grid">
+        <div class="tech-item" style="background: #000;">Next.js 16</div>
+        <div class="tech-item" style="background: #3b82f6;">TypeScript</div>
+        <div class="tech-item" style="background: #a855f7;">Prisma</div>
+        <div class="tech-item" style="background: #06b6d4;">Dockerode</div>
+        <div class="tech-item" style="background: #6366f1;">NextAuth.js</div>
+        <div class="tech-item" style="background: #0ea5e9;">Tailwind CSS</div>
+        <div class="tech-item" style="background: #475569;">shadcn/ui</div>
+        <div class="tech-item" style="background: #eab308;">Vitest</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" style="color: #f97316;">202+</div>
+          <div class="stat-label">测试用例</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color: #3b82f6;">76%</div>
+          <div class="stat-label">代码覆盖率</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color: #22c55e;">3层</div>
+          <div class="stat-label">安全防护</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color: #a855f7;">&lt;2s</div>
+          <div class="stat-label">响应延迟</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-text">© 2026 OpenClaw Colony. Apache 2.0 License.</div>
+        <div class="footer-links">
+          <a href="https://github.com/vermilion-bird/openclaw-colony">GitHub</a>
+          <a href="https://github.com/vermilion-bird/openclaw-colony/issues">Issues</a>
+          <a href="https://github.com/vermilion-bird/openclaw-colony/blob/master/docs/superpowers/specs/2026-05-20-openclaw-colony-manager-design.md">设计文档</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

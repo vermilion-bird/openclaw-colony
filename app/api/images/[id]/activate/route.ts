@@ -31,7 +31,7 @@ export async function PATCH(
   }
 
   // Use transaction to ensure atomicity and prevent race conditions
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
     // Deactivate all images first
     await tx.image.updateMany({
       where: {},

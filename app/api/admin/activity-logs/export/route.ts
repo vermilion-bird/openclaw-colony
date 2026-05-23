@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     'IP地址', 'UA', '扩展数据', '时间'
   ]
 
-  const rows = logs.map(log => [
+  const rows = logs.map((log: any) => [
     log.id.toString(),
     log.userName,
     log.userEmail,
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     log.createdAt.toISOString(),
   ])
 
-  const csv = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))].join('\n')
+  const csv = [headers.join(','), ...rows.map((r: any) => r.map((cell: string) => `"${cell.replace(/"/g, '""')}"`).join(','))].join('\n')
 
   return new NextResponse(csv, {
     headers: {
