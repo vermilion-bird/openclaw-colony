@@ -8,6 +8,13 @@ function requireAdmin(session: any) {
   return null
 }
 
+function serializeImage(image: any) {
+  return {
+    ...image,
+    compressedSize: Number(image.compressedSize),
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -48,5 +55,5 @@ export async function PATCH(
     },
   })
 
-  return NextResponse.json({ ...image, isActive: true })
+  return NextResponse.json(serializeImage({ ...image, isActive: true }))
 }

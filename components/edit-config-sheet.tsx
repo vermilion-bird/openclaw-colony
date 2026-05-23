@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ChannelConfigForm } from '@/components/channel-config-form'
-import { ModelConfigForm } from '@/components/model-config-form'
+import { AgentList } from '@/components/agent-list'
 
 interface FeishuConfig {
   enabled: boolean
@@ -18,14 +18,26 @@ interface FeishuConfig {
   requireMention: boolean
 }
 
-interface ModelConfig {
-  primary: string
-  fallbacks: string[]
+interface AgentConfig {
+  id: string
+  default?: boolean
+  identity?: { name?: string; theme?: string; emoji?: string; avatar?: string }
+  model?: string | { primary: string; fallbacks?: string[] }
+  tools?: { profile?: 'minimal' | 'coding' | 'messaging' | 'full'; allow?: string[]; deny?: string[] }
+}
+
+interface BindingConfig {
+  agentId: string
+  match: { channel?: string; peer?: string; guildId?: string; accountId?: string; teamId?: string }
 }
 
 interface OpenClawConfigData {
   channels: { feishu?: any }
-  agents: { defaults?: { model?: ModelConfig } }
+  agents: {
+    defaults?: { model?: { primary: string; fallbacks: string[] } }
+    list?: AgentConfig[]
+  }
+  bindings?: BindingConfig[]
 }
 
 interface Props {
@@ -41,7 +53,8 @@ export function EditConfigSheet({ instanceId, onClose, onSaved }: Props) {
     gatewayToken: '',
   })
   const [feishuConfig, setFeishuConfig] = useState<FeishuConfig | null>(null)
-  const [modelConfig, setModelConfig] = useState<ModelConfig | null>(null)
+  const [agents, setAgents] = useState<AgentConfig[]>([])
+  const [bindings, setBindings] = useState<BindingConfig[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -74,13 +87,8 @@ export function EditConfigSheet({ instanceId, onClose, onSaved }: Props) {
         })
       }
 
-      const model = data.agents?.defaults?.model
-      if (model) {
-        setModelConfig({
-          primary: model.primary ?? '',
-          fallbacks: model.fallbacks ?? [],
-        })
-      }
+      setAgents(data.agents?.list ?? [])
+      setBindings(data.bindings ?? [])
     })
   }, [instanceId])
 
@@ -121,7 +129,7 @@ export function EditConfigSheet({ instanceId, onClose, onSaved }: Props) {
           <TabsList className="w-full">
             <TabsTrigger value="basic" className="flex-1">基础</TabsTrigger>
             <TabsTrigger value="channel" className="flex-1">渠道</TabsTrigger>
-            <TabsTrigger value="model" className="flex-1">模型</TabsTrigger>
+            <TabsTrigger value="agents" className="flex-1">Agents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
@@ -162,11 +170,19 @@ export function EditConfigSheet({ instanceId, onClose, onSaved }: Props) {
             />
           </TabsContent>
 
-          <TabsContent value="model" className="mt-4">
-            <ModelConfigForm
+          <TabsContent value="agents" className="mt-4">
+            <AgentList
               instanceId={instanceId}
-              initialConfig={modelConfig}
-              onSaved={() => { onSaved(); onClose(); }}
+              agents={agents}
+              bindings={bindings}
+              onSaved={() => {
+                // Refresh config after save
+                fetch(`/api/instances/${instanceId}/openclaw-config`).then(r => r.json()).then(data => {
+                  setAgents(data.agents?.list ?? [])
+                  setBindings(data.bindings ?? [])
+                })
+                onSaved()
+              }}
             />
           </TabsContent>
         </Tabs>

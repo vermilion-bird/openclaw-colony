@@ -1,0 +1,51 @@
+// tests/security/output-guard.test.ts
+
+import { describe, test, expect } from 'vitest'
+import { StreamingKeywordFilter, DEFAULT_SENSITIVE_WORDS } from '@/lib/security/output-guard/keyword-filter'
+import { classifyContent, CONTENT_CLASSIFICATION_PROMPT } from '@/lib/security/output-guard/content-classifier'
+
+describe('Output Guard - Keyword Filter', () => {
+  test('detects sensitive word in content', () => {
+    const filter = new StreamingKeywordFilter(DEFAULT_SENSITIVE_WORDS)
+    const result = filter.checkIncremental('这是正常内容')
+    expect(result).toBeNull()
+
+    const result2 = filter.checkIncremental('包含转账')
+    expect(result2?.matched).toBe(true)
+    expect(result2?.category).toBe('fraud_indicators')
+  })
+
+  test('returns correct action for different categories', () => {
+    const filter = new StreamingKeywordFilter(DEFAULT_SENSITIVE_WORDS)
+    filter.reset()
+    const result = filter.checkIncremental('投资回报')
+    expect(result?.action).toBe('reject')
+  })
+
+  test('reset clears buffer', () => {
+    const filter = new StreamingKeywordFilter(DEFAULT_SENSITIVE_WORDS)
+    filter.checkIncremental('转账汇款')
+    filter.reset()
+    const content = filter.checkIncremental('新内容')
+    expect(content).toBeNull()
+  })
+})
+
+describe('Output Guard - Content Classification', () => {
+  test('CONTENT_CLASSIFICATION_PROMPT contains required placeholders', () => {
+    expect(CONTENT_CLASSIFICATION_PROMPT).toContain('{{content}}')
+  })
+
+  test('classifyContent returns proper structure', async () => {
+    const result = await classifyContent('这是正常内容')
+    expect(result).toHaveProperty('compliance')
+    expect(result).toHaveProperty('confidence')
+    expect(result).toHaveProperty('reason')
+    expect(['compliant', 'non_compliant', 'ambiguous']).toContain(result.compliance)
+  })
+
+  test('classifyContent handles empty content', async () => {
+    const result = await classifyContent('')
+    expect(result.compliance).toBe('compliant')
+  })
+})

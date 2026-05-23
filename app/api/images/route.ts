@@ -11,6 +11,13 @@ function requireAdmin(session: any) {
   return null
 }
 
+function serializeImage(image: any) {
+  return {
+    ...image,
+    compressedSize: Number(image.compressedSize),
+  }
+}
+
 export async function GET(req: NextRequest) {
   const session = await auth()
   const authErr = requireAdmin(session)
@@ -29,7 +36,7 @@ export async function GET(req: NextRequest) {
 
   const total = await prisma.image.count()
 
-  return NextResponse.json({ images, total, page, limit })
+  return NextResponse.json({ images: images.map(serializeImage), total, page, limit })
 }
 
 export async function POST(req: NextRequest) {
@@ -93,7 +100,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return NextResponse.json(image, { status: 201 })
+    return NextResponse.json(serializeImage(image), { status: 201 })
   }
 
   // ghcr.io import
@@ -141,7 +148,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return NextResponse.json(image, { status: 201 })
+    return NextResponse.json(serializeImage(image), { status: 201 })
   }
 
   return NextResponse.json({ error: '无效的仓库来源' }, { status: 400 })
